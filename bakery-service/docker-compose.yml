@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  bakery-db:
+    image: postgres:16.11-alpine
+    container_name: bakery-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: bakery-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - bakery-db:/var/lib/postgresql/data
+
+volumes:
+  bakery-db:

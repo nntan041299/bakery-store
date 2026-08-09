@@ -9,7 +9,9 @@ interface NavItem {
   icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [{ path: "/", label: "Home", icon: "pi-th-large" }];
+const NAV_ITEMS: NavItem[] = [
+  { path: "/", label: "Home", icon: "pi-th-large" },
+];
 
 interface SideBarProps {
   open?: boolean;

@@ -24,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.EnumSet;
+import java.util.Set;
 
 @Service
 public class AuthService extends AbstractAuthenticationService {
@@ -51,6 +53,8 @@ public class AuthService extends AbstractAuthenticationService {
         this.currentUserProvider = currentUserProvider;
     }
 
+    private static final Set<Role> REGISTERABLE_ROLES = EnumSet.of(Role.CUSTOMER, Role.SHOP_OWNER);
+
     public TokenResponse register(CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
@@ -58,13 +62,16 @@ public class AuthService extends AbstractAuthenticationService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists: " + request.getEmail());
         }
+        if (!REGISTERABLE_ROLES.contains(request.getRole())) {
+            throw new IllegalArgumentException("Role must be one of: " + REGISTERABLE_ROLES);
+        }
 
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .fullName(request.getFullName())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(request.getRole())
                 .isActive(true)
                 .build();
 

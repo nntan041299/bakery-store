@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import type { AxiosError } from "axios";
 import Loading from "@/components/Loading";
 import { getGoogleLoginUrl } from "@/service/auth";
+import type { RegisterableRole } from "@/service/auth";
 import { useRegister } from "@/hook/useRegister";
 
 interface SignupErrors {
@@ -22,6 +23,7 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<RegisterableRole>("CUSTOMER");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -76,7 +78,7 @@ const SignUp = () => {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!signupValidate()) return;
-    register({ fullName, username, email, password });
+    register({ fullName, username, email, password, role });
   }
 
   const clearError = (key: keyof SignupErrors) => {
@@ -249,6 +251,39 @@ const SignUp = () => {
                   </small>
                 )}
               </label>
+            </div>
+
+            {/* Row 4: Account type */}
+            <div className="block">
+              <span className="form-label">Account type</span>
+              <div className="form-row">
+                <label
+                  className={`role-option ${role === "CUSTOMER" ? "role-option-selected" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value="CUSTOMER"
+                    checked={role === "CUSTOMER"}
+                    onChange={() => setRole("CUSTOMER")}
+                    disabled={isPending}
+                  />
+                  Customer
+                </label>
+                <label
+                  className={`role-option ${role === "SHOP_OWNER" ? "role-option-selected" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value="SHOP_OWNER"
+                    checked={role === "SHOP_OWNER"}
+                    onChange={() => setRole("SHOP_OWNER")}
+                    disabled={isPending}
+                  />
+                  Shop owner
+                </label>
+              </div>
             </div>
 
             <button disabled={isPending} className="btn-primary mt-1">

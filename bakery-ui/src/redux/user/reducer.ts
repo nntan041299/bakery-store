@@ -23,7 +23,7 @@ const INITIAL_STATE: UserState = {
   email: undefined,
   firstName: undefined,
   lastName: undefined,
-  avatarUrl: undefined
+  avatarUrl: undefined,
 };
 
 const userReducer = (
@@ -39,7 +39,7 @@ const userReducer = (
         email: payload.email,
         firstName: payload.firstName,
         lastName: payload.lastName,
-        avatarUrl: payload.avatarUrl
+        avatarUrl: payload.avatarUrl,
       };
     }
     default:

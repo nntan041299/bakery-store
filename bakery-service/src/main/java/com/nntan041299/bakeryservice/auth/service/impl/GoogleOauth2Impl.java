@@ -111,7 +111,7 @@ public class GoogleOauth2Impl extends AbstractAuthenticationService implements I
                                 .email(userInfo.getEmail())
                                 .fullName(buildFullName(userInfo))
                                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                                .role(Role.USER)
+                                .role(Role.CUSTOMER)
                                 .isActive(true)
                                 .build()));
     }

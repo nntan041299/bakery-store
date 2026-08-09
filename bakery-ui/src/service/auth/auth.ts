@@ -11,11 +11,14 @@ interface GoogleTokenParams {
   state: string;
 }
 
+export type RegisterableRole = "CUSTOMER" | "SHOP_OWNER";
+
 interface SignUpParams {
   username: string;
   email: string;
   password: string;
   fullName: string;
+  role: RegisterableRole;
 }
 
 export const login = async ({ username, password }: LoginParams) => {
@@ -46,10 +49,11 @@ export const signUp = async ({
   email,
   password,
   fullName,
+  role,
 }: SignUpParams) => {
   return await request.post({
     path: API_BASE_URL + ENDPOINT.SIGN_UP,
-    body: { username, email, password, fullName },
+    body: { username, email, password, fullName, role },
   });
 };
 

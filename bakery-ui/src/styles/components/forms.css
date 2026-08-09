@@ -59,6 +59,23 @@
     @apply grid grid-cols-2 gap-3;
   }
 
+  /* ── Role option ── */
+  .role-option {
+    @apply flex items-center gap-2 w-full border rounded-[var(--radius-input)] px-3 py-2 text-sm
+           cursor-pointer transition-[border-color,box-shadow,background] duration-150;
+    font-family: var(--font-sans);
+    background: var(--color-bg-input);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .role-option-selected {
+    @apply bg-white;
+    border-color: var(--color-sage-600);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--color-sage-600) 12%, transparent);
+  }
+
   /* ── Password toggle button ── */
   .input-toggle-btn {
     @apply absolute right-2.5 top-1/2 -translate-y-1/2 p-0 border-none bg-transparent

@@ -1,7 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
 import { signOut } from "@/service/auth";
 import { useAuth } from "@/context/AuthProvider";
+import { selectUser } from "@/redux/user/selectors";
 
 interface NavItem {
   path: string;
@@ -9,8 +11,12 @@ interface NavItem {
   icon: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const BASE_NAV_ITEMS: NavItem[] = [
   { path: "/", label: "Home", icon: "pi-th-large" },
+];
+
+const SHOP_OWNER_NAV_ITEMS: NavItem[] = [
+  { path: "/products", label: "Inventory", icon: "pi-box" },
 ];
 
 interface SideBarProps {
@@ -22,6 +28,12 @@ export default function SideBar({ open, onClose }: SideBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { removeToken } = useAuth();
+  const { role } = useSelector(selectUser);
+
+  const navItems =
+    role === "SHOP_OWNER"
+      ? [...BASE_NAV_ITEMS, ...SHOP_OWNER_NAV_ITEMS]
+      : BASE_NAV_ITEMS;
 
   const { mutate: handleSignOut, isPending } = useMutation({
     mutationFn: signOut,
@@ -58,8 +70,11 @@ export default function SideBar({ open, onClose }: SideBarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ path, label, icon }) => {
-          const active = location.pathname === path;
+        {navItems.map(({ path, label, icon }) => {
+          const active =
+            path === "/"
+              ? location.pathname === path
+              : location.pathname.startsWith(path);
           return (
             <button
               key={path}

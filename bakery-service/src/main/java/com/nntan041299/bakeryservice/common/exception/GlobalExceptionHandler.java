@@ -1,6 +1,7 @@
 package com.nntan041299.bakeryservice.common.exception;
 
 import com.nntan041299.bakeryservice.common.dto.ErrorResponse;
+import com.nntan041299.bakeryservice.product.exception.ProductNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 

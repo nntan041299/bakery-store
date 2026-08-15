@@ -153,6 +153,7 @@ const Account = () => {
           firstName: parts[0] ?? "",
           lastName: parts.slice(1).join(" ") || undefined,
           avatarUrl: user.avatarUrl,
+          role: user.role,
         }),
       );
       setProfileSuccess("Profile updated.");

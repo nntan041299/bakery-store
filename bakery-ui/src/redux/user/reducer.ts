@@ -1,6 +1,8 @@
 import { UnknownAction } from "@reduxjs/toolkit";
 import * as actionTypes from "./types";
 
+export type UserRole = "CUSTOMER" | "SHOP_OWNER" | "ADMIN";
+
 export interface UserState {
   id: string | undefined;
   username: string | undefined;
@@ -8,6 +10,7 @@ export interface UserState {
   firstName: string | undefined;
   lastName: string | undefined;
   avatarUrl: string | undefined;
+  role: UserRole | undefined;
 }
 
 interface UserInfoRetrieveSuccessAction {
@@ -24,6 +27,7 @@ const INITIAL_STATE: UserState = {
   firstName: undefined,
   lastName: undefined,
   avatarUrl: undefined,
+  role: undefined,
 };
 
 const userReducer = (
@@ -40,6 +44,7 @@ const userReducer = (
         firstName: payload.firstName,
         lastName: payload.lastName,
         avatarUrl: payload.avatarUrl,
+        role: payload.role,
       };
     }
     default:

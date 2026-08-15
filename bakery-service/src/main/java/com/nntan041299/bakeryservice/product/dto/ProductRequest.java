@@ -1,6 +1,7 @@
 package com.nntan041299.bakeryservice.product.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -29,6 +30,10 @@ public class ProductRequest {
     @NotBlank(message = "SKU is required")
     @Size(max = 50, message = "SKU must not exceed 50 characters")
     private String sku;
+
+    @NotNull(message = "Quantity is required")
+    @Min(value = 0, message = "Quantity must not be negative")
+    private Integer quantity;
 
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;

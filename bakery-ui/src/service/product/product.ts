@@ -6,6 +6,7 @@ export interface Product {
   description?: string;
   price: number;
   sku: string;
+  quantity: number;
   imageUrl?: string;
   active: boolean;
   createdAt: string;
@@ -29,6 +30,7 @@ export interface ProductFormPayload {
   description?: string;
   price: number;
   sku: string;
+  quantity: number;
   imageUrl?: string;
   active: boolean;
 }

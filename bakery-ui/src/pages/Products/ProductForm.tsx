@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/layouts/Layout";
 import {
   createProduct,
@@ -15,6 +15,7 @@ interface FormState {
   description: string;
   price: string;
   sku: string;
+  quantity: string;
   imageUrl: string;
   active: boolean;
 }
@@ -24,6 +25,7 @@ const EMPTY_FORM: FormState = {
   description: "",
   price: "",
   sku: "",
+  quantity: "",
   imageUrl: "",
   active: true,
 };
@@ -110,6 +112,7 @@ const toFormState = (product?: Product): FormState =>
         description: product.description ?? "",
         price: String(product.price),
         sku: product.sku,
+        quantity: String(product.quantity),
         imageUrl: product.imageUrl ?? "",
         active: product.active,
       }
@@ -158,6 +161,7 @@ function ProductFormBody({
   initialProduct?: Product;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(() =>
     toFormState(initialProduct),
   );
@@ -166,7 +170,13 @@ function ProductFormBody({
   const { mutate: save, isPending: isSaving } = useMutation({
     mutationFn: (payload: ProductFormPayload) =>
       isEdit ? updateProduct(id!, payload) : createProduct(payload),
-    onSuccess: () => navigate("/products"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["product", id] });
+      }
+      navigate("/products");
+    },
     onError: (err: unknown) => {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -204,12 +214,23 @@ function ProductFormBody({
       setError("SKU is required.");
       return;
     }
+    const quantity = Number(form.quantity);
+    if (
+      !form.quantity ||
+      Number.isNaN(quantity) ||
+      !Number.isInteger(quantity) ||
+      quantity < 0
+    ) {
+      setError("Enter a valid quantity.");
+      return;
+    }
 
     save({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       price,
       sku: form.sku.trim(),
+      quantity,
       imageUrl: form.imageUrl.trim() || undefined,
       active: form.active,
     });
@@ -286,6 +307,18 @@ function ProductFormBody({
                 />
               </Field>
             </div>
+
+            <Field label="Quantity">
+              <Input
+                name="quantity"
+                type="number"
+                min="0"
+                step="1"
+                value={form.quantity}
+                onChange={handleChange}
+                placeholder="0"
+              />
+            </Field>
 
             <Field label="Image URL">
               <Input

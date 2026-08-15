@@ -232,6 +232,12 @@ const Products = () => {
                       sortDir={sortDir}
                       onSort={handleSort}
                     />
+                    <th
+                      className="px-4 py-3 text-left text-xs font-semibold text-surface-500 uppercase tracking-wider"
+                      style={{ fontFamily: "var(--font-sans)" }}
+                    >
+                      Quantity
+                    </th>
                     <SortHeader
                       label="Status"
                       field="active"
@@ -266,6 +272,12 @@ const Products = () => {
                         style={{ fontFamily: "var(--font-sans)" }}
                       >
                         ${Number(product.price).toFixed(2)}
+                      </td>
+                      <td
+                        className="px-4 py-3 text-sm text-surface-700"
+                        style={{ fontFamily: "var(--font-sans)" }}
+                      >
+                        {product.quantity}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge active={product.active} />

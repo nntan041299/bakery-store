@@ -57,6 +57,7 @@ public class ProductService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .sku(request.getSku())
+                .quantity(request.getQuantity())
                 .imageUrl(request.getImageUrl())
                 .active(request.getActive() == null || request.getActive())
                 .build();
@@ -76,6 +77,7 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setSku(request.getSku());
+        product.setQuantity(request.getQuantity());
         product.setImageUrl(request.getImageUrl());
         product.setActive(request.getActive() == null || request.getActive());
 

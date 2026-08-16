@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/layouts/Layout";
 import StatusBadge from "@/components/StatusBadge";
+import Thumbnail from "@/components/Thumbnail";
 import SortableHeader from "@/components/SortableHeader";
 import CategoryFilter from "@/components/CategoryFilter";
 import Dropdown, { DropdownOption } from "@/components/Dropdown";
@@ -227,7 +228,13 @@ const Products = () => {
                         className="px-4 py-3 text-sm font-medium text-surface-900"
                         style={{ fontFamily: FONT_SANS }}
                       >
-                        {product.name}
+                        <div className="flex items-center gap-3">
+                          <Thumbnail
+                            imageUrl={product.imageUrl}
+                            name={product.name}
+                          />
+                          {product.name}
+                        </div>
                       </td>
                       <td
                         className="px-4 py-3 text-sm text-surface-500"

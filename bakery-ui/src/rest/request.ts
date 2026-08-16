@@ -151,4 +151,23 @@ export const request = {
   delete: async ({ path, body, headers }: RequestParams) => {
     return await axios.delete(path, { headers, data: body });
   },
+
+  upload: async ({
+    path,
+    formData,
+    method = "post",
+  }: {
+    path: string;
+    formData: FormData;
+    method?: "post" | "put";
+  }) => {
+    // Let the browser set the multipart Content-Type (with boundary) itself —
+    // overriding the global "application/json" default header is required.
+    return await axios.request({
+      url: path,
+      method,
+      data: formData,
+      headers: { "Content-Type": undefined },
+    });
+  },
 };

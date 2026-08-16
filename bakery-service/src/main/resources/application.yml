@@ -90,3 +90,6 @@ app:
       url: https://www.googleapis.com
     googleOauth2Api:
       url: https://oauth2.googleapis.com
+
+cloudinary:
+  url: ${CLOUDINARY_URL}

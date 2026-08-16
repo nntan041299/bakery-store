@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Layout from "@/layouts/Layout";
 import { SectionCard, Field, Input, Textarea } from "@/components/Form";
 import CategoryPicker from "@/components/CategoryPicker";
+import ImageUploadField from "@/components/ImageUploadField";
 import { Product, ProductFormPayload } from "@/service/product";
 import { useProduct } from "@/hook/useProduct";
 import { useSaveProduct } from "@/hook/useSaveProduct";
@@ -85,6 +86,7 @@ function ProductFormBody({
   const [form, setForm] = useState<FormState>(() =>
     toFormState(initialProduct),
   );
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState("");
 
   const { mutate: save, isPending: isSaving, getErrorMessage } =
@@ -136,7 +138,7 @@ function ProductFormBody({
       price,
       sku: form.sku.trim(),
       quantity,
-      imageUrl: form.imageUrl.trim() || undefined,
+      imageFile: imageFile ?? undefined,
       active: form.active,
       categories: form.categories,
     };
@@ -177,6 +179,20 @@ function ProductFormBody({
 
         <SectionCard title={PRODUCT_FORM_TEXT.SECTION_TITLE}>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <ImageUploadField
+              imageUrl={form.imageUrl}
+              file={imageFile}
+              onSelectFile={(file) => {
+                setImageFile(file);
+                setForm((p) => ({ ...p, imageUrl: "" }));
+              }}
+              onRemove={() => {
+                setImageFile(null);
+                setForm((p) => ({ ...p, imageUrl: "" }));
+              }}
+              disabled={isSaving}
+            />
+
             <Field label={PRODUCT_FORM_TEXT.LABEL_NAME}>
               <Input
                 name="name"
@@ -236,15 +252,6 @@ function ProductFormBody({
                 onChange={(categories) =>
                   setForm((p) => ({ ...p, categories }))
                 }
-              />
-            </Field>
-
-            <Field label={PRODUCT_FORM_TEXT.LABEL_IMAGE_URL}>
-              <Input
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleChange}
-                placeholder={PRODUCT_FORM_TEXT.PLACEHOLDER_IMAGE_URL}
               />
             </Field>
 

@@ -3,6 +3,9 @@ package com.nntan041299.bakeryservice.product.service;
 import com.nntan041299.bakeryservice.auth.service.CurrentUserProvider;
 import com.nntan041299.bakeryservice.category.service.CategoryService;
 import com.nntan041299.bakeryservice.common.dto.PageResponse;
+import com.nntan041299.bakeryservice.file.FileUploadingResponse;
+import com.nntan041299.bakeryservice.file.FileUploadingService;
+import com.nntan041299.bakeryservice.file.MultipartFileUtils;
 import com.nntan041299.bakeryservice.product.dto.ProductRequest;
 import com.nntan041299.bakeryservice.product.dto.ProductResponse;
 import com.nntan041299.bakeryservice.product.entity.Product;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -27,6 +31,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final CurrentUserProvider currentUserProvider;
     private final CategoryService categoryService;
+    private final FileUploadingService fileUploadingService;
 
     public PageResponse<ProductResponse> listProducts(String search, Boolean active, Long categoryId, Pageable pageable) {
         Long ownerId = currentUserProvider.getCurrentUser().getId();
@@ -48,7 +53,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse createProduct(ProductRequest request) {
+    public ProductResponse createProduct(ProductRequest request, MultipartFile image) {
         if (productRepository.existsBySku(request.getSku())) {
             throw new IllegalArgumentException("SKU already exists: " + request.getSku());
         }
@@ -61,7 +66,7 @@ public class ProductService {
                 .price(request.getPrice())
                 .sku(request.getSku())
                 .quantity(request.getQuantity())
-                .imageUrl(request.getImageUrl())
+                .imageUrl(uploadImageIfPresent(image))
                 .active(request.getActive() == null || request.getActive())
                 .categories(categoryService.resolveOrCreate(ownerId, request.getCategories()))
                 .build();
@@ -70,7 +75,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse updateProduct(Long id, ProductRequest request) {
+    public ProductResponse updateProduct(Long id, ProductRequest request, MultipartFile image) {
         Product product = findOwnedProduct(id);
 
         if (!product.getSku().equals(request.getSku()) && productRepository.existsBySkuAndIdNot(request.getSku(), id)) {
@@ -82,11 +87,22 @@ public class ProductService {
         product.setPrice(request.getPrice());
         product.setSku(request.getSku());
         product.setQuantity(request.getQuantity());
-        product.setImageUrl(request.getImageUrl());
+        if (image != null && !image.isEmpty()) {
+            product.setImageUrl(uploadImageIfPresent(image));
+        }
         product.setActive(request.getActive() == null || request.getActive());
         product.setCategories(categoryService.resolveOrCreate(product.getOwnerId(), request.getCategories()));
 
         return productMapper.toResponse(productRepository.save(product));
+    }
+
+    private String uploadImageIfPresent(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            return null;
+        }
+        return fileUploadingService.upload(MultipartFileUtils.toTempFile(image))
+                .map(FileUploadingResponse::getUrl)
+                .orElseThrow(() -> new IllegalStateException("Failed to upload product image"));
     }
 
     private Product findOwnedProduct(Long id) {

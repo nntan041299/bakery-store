@@ -33,7 +33,7 @@ export interface ProductFormPayload {
   price: number;
   sku: string;
   quantity: number;
-  imageUrl?: string;
+  imageFile?: File;
   active: boolean;
   categories: string[];
 }
@@ -70,10 +70,23 @@ export const getProduct = async (id: string | number) => {
   return request.get({ path: productByIdEndpoint(id) });
 };
 
+const buildProductFormData = (payload: ProductFormPayload): FormData => {
+  const formData = new FormData();
+  formData.append("name", payload.name);
+  if (payload.description) formData.append("description", payload.description);
+  formData.append("price", String(payload.price));
+  formData.append("sku", payload.sku);
+  formData.append("quantity", String(payload.quantity));
+  formData.append("active", String(payload.active));
+  payload.categories.forEach((category) => formData.append("categories", category));
+  if (payload.imageFile) formData.append("image", payload.imageFile);
+  return formData;
+};
+
 export const createProduct = async (payload: ProductFormPayload) => {
-  return request.post({
+  return request.upload({
     path: ENDPOINT.PRODUCTS,
-    body: payload as unknown as Record<string, unknown>,
+    formData: buildProductFormData(payload),
   });
 };
 
@@ -81,8 +94,9 @@ export const updateProduct = async (
   id: string | number,
   payload: ProductFormPayload,
 ) => {
-  return request.put({
+  return request.upload({
     path: productByIdEndpoint(id),
-    body: payload as unknown as Record<string, unknown>,
+    formData: buildProductFormData(payload),
+    method: "put",
   });
 };

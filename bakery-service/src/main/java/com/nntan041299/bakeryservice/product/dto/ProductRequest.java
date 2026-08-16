@@ -8,11 +8,13 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
@@ -35,9 +37,6 @@ public class ProductRequest {
     @NotNull(message = "Quantity is required")
     @Min(value = 0, message = "Quantity must not be negative")
     private Integer quantity;
-
-    @Size(max = 500, message = "Image URL must not exceed 500 characters")
-    private String imageUrl;
 
     private Boolean active;
 

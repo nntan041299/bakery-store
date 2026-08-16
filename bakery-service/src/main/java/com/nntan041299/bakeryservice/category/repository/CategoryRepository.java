@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    List<Category> findByOwnerIdOrderByNameAsc(Long ownerId);
+    List<Category> findByStoreIdOrderByNameAsc(Long storeId);
 
-    Optional<Category> findByOwnerIdAndNameIgnoreCase(Long ownerId, String name);
+    Optional<Category> findByStoreIdAndNameIgnoreCase(Long storeId, String name);
 }

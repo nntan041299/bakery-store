@@ -19,6 +19,7 @@ interface SignUpParams {
   password: string;
   fullName: string;
   role: RegisterableRole;
+  shopName?: string;
 }
 
 export const login = async ({ username, password }: LoginParams) => {
@@ -50,10 +51,11 @@ export const signUp = async ({
   password,
   fullName,
   role,
+  shopName,
 }: SignUpParams) => {
   return await request.post({
     path: API_BASE_URL + ENDPOINT.SIGN_UP,
-    body: { username, email, password, fullName, role },
+    body: { username, email, password, fullName, role, shopName },
   });
 };
 

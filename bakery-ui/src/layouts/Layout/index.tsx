@@ -1,40 +1,15 @@
-import { ReactNode, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { ReactNode, useState } from "react";
 import SideBar from "@/components/SideBar";
 import Header from "@/components/Header";
-import { getUserInfo } from "@/service/user";
-import { setUserInfo } from "@/redux/user";
-import { selectUser } from "@/redux/user/selectors";
-import { AppDispatch } from "@/redux/store";
+import { useCurrentUser } from "@/hook/useCurrentUser";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { id } = useSelector(selectUser);
+  useCurrentUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (!id) {
-      getUserInfo().then((res) => {
-        const data = res.data.data;
-        const parts = (data.fullName ?? "").trim().split(/\s+/);
-        dispatch(
-          setUserInfo({
-            id: String(data.id),
-            username: data.username,
-            email: data.email,
-            firstName: parts[0] ?? "",
-            lastName: parts.slice(1).join(" ") || undefined,
-            avatarUrl: data.avatarUrl,
-            role: data.role,
-          }),
-        );
-      });
-    }
-  }, [dispatch, id]);
 
   return (
     <div className="flex h-screen overflow-hidden">

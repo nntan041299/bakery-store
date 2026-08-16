@@ -6,12 +6,22 @@ export const ENDPOINT = {
   SIGN_UP: "bakery-service/api/auth/register",
   SIGN_OUT: "bakery-service/api/auth/logout",
   REFRESH_TOKEN: "bakery-service/api/auth/refresh",
-  PRODUCTS: "bakery-service/api/products",
-  CATEGORIES: "bakery-service/api/categories",
+  STORES: "bakery-service/api/stores",
+  MY_STORES: "bakery-service/api/stores/mine",
 } as const;
 
-export const productByIdEndpoint = (id: string | number): string =>
-  `${ENDPOINT.PRODUCTS}/${id}`;
+export const storeProductsEndpoint = (storeId: string | number): string =>
+  `${ENDPOINT.STORES}/${storeId}/products`;
 
-export const categoryByIdEndpoint = (id: string | number): string =>
-  `${ENDPOINT.CATEGORIES}/${id}`;
+export const storeProductByIdEndpoint = (
+  storeId: string | number,
+  id: string | number,
+): string => `${storeProductsEndpoint(storeId)}/${id}`;
+
+export const storeCategoriesEndpoint = (storeId: string | number): string =>
+  `${ENDPOINT.STORES}/${storeId}/categories`;
+
+export const storeCategoryByIdEndpoint = (
+  storeId: string | number,
+  id: string | number,
+): string => `${storeCategoriesEndpoint(storeId)}/${id}`;

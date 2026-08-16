@@ -8,6 +8,7 @@ const Account = lazy(() => import("@/pages/Account"));
 const Products = lazy(() => import("@/pages/Products"));
 const ProductForm = lazy(() => import("@/pages/Products/ProductForm"));
 const Categories = lazy(() => import("@/pages/Categories"));
+const SwitchStore = lazy(() => import("@/pages/SwitchStore"));
 
 const routes: Record<string, RouteObject[]> = {
   default: [
@@ -34,6 +35,10 @@ const routes: Record<string, RouteObject[]> = {
     {
       path: "/categories",
       element: <Categories />,
+    },
+    {
+      path: "/switch-store",
+      element: <SwitchStore />,
     },
     {
       path: "*",

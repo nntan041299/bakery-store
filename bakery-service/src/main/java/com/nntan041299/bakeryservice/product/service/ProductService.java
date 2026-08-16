@@ -1,6 +1,5 @@
 package com.nntan041299.bakeryservice.product.service;
 
-import com.nntan041299.bakeryservice.auth.service.CurrentUserProvider;
 import com.nntan041299.bakeryservice.category.service.CategoryService;
 import com.nntan041299.bakeryservice.common.dto.PageResponse;
 import com.nntan041299.bakeryservice.file.FileUploadingResponse;
@@ -12,6 +11,7 @@ import com.nntan041299.bakeryservice.product.entity.Product;
 import com.nntan041299.bakeryservice.product.exception.ProductNotFoundException;
 import com.nntan041299.bakeryservice.product.mapper.ProductMapper;
 import com.nntan041299.bakeryservice.product.repository.ProductRepository;
+import com.nntan041299.bakeryservice.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,15 +29,15 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final CurrentUserProvider currentUserProvider;
     private final CategoryService categoryService;
+    private final StoreService storeService;
     private final FileUploadingService fileUploadingService;
 
-    public PageResponse<ProductResponse> listProducts(String search, Boolean active, Long categoryId, Pageable pageable) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
+    public PageResponse<ProductResponse> listProducts(Long storeId, String search, Boolean active, Long categoryId, Pageable pageable) {
+        storeService.assertStoreOwnership(storeId);
 
         Specification<Product> spec = Specification.allOf(Stream.of(
-                        ProductSpecifications.ownerIs(ownerId),
+                        ProductSpecifications.storeIs(storeId),
                         ProductSpecifications.searchNameOrSku(search),
                         ProductSpecifications.activeIs(active),
                         ProductSpecifications.hasCategory(categoryId))
@@ -48,19 +48,20 @@ public class ProductService {
         return PageResponse.from(page.map(productMapper::toResponse));
     }
 
-    public ProductResponse getProduct(Long id) {
-        return productMapper.toResponse(findOwnedProduct(id));
+    public ProductResponse getProduct(Long storeId, Long id) {
+        return productMapper.toResponse(findOwnedProduct(storeId, id));
     }
 
     @Transactional
-    public ProductResponse createProduct(ProductRequest request, MultipartFile image) {
+    public ProductResponse createProduct(Long storeId, ProductRequest request, MultipartFile image) {
+        storeService.assertStoreOwnership(storeId);
+
         if (productRepository.existsBySku(request.getSku())) {
             throw new IllegalArgumentException("SKU already exists: " + request.getSku());
         }
 
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
         Product product = Product.builder()
-                .ownerId(ownerId)
+                .storeId(storeId)
                 .name(request.getName())
                 .description(request.getDescription())
                 .price(request.getPrice())
@@ -68,15 +69,15 @@ public class ProductService {
                 .quantity(request.getQuantity())
                 .imageUrl(uploadImageIfPresent(image))
                 .active(request.getActive() == null || request.getActive())
-                .categories(categoryService.resolveOrCreate(ownerId, request.getCategories()))
+                .categories(categoryService.resolveOrCreate(storeId, request.getCategories()))
                 .build();
 
         return productMapper.toResponse(productRepository.save(product));
     }
 
     @Transactional
-    public ProductResponse updateProduct(Long id, ProductRequest request, MultipartFile image) {
-        Product product = findOwnedProduct(id);
+    public ProductResponse updateProduct(Long storeId, Long id, ProductRequest request, MultipartFile image) {
+        Product product = findOwnedProduct(storeId, id);
 
         if (!product.getSku().equals(request.getSku()) && productRepository.existsBySkuAndIdNot(request.getSku(), id)) {
             throw new IllegalArgumentException("SKU already exists: " + request.getSku());
@@ -93,7 +94,7 @@ public class ProductService {
             product.setImageUrl(null);
         }
         product.setActive(request.getActive() == null || request.getActive());
-        product.setCategories(categoryService.resolveOrCreate(product.getOwnerId(), request.getCategories()));
+        product.setCategories(categoryService.resolveOrCreate(storeId, request.getCategories()));
 
         return productMapper.toResponse(productRepository.save(product));
     }
@@ -107,10 +108,10 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalStateException("Failed to upload product image"));
     }
 
-    private Product findOwnedProduct(Long id) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
+    private Product findOwnedProduct(Long storeId, Long id) {
+        storeService.assertStoreOwnership(storeId);
         return productRepository.findById(id)
-                .filter(product -> product.getOwnerId().equals(ownerId))
+                .filter(product -> product.getStoreId().equals(storeId))
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
 }

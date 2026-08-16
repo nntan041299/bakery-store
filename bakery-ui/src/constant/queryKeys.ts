@@ -1,15 +1,20 @@
 export const QUERY_KEYS = {
-  CATEGORIES: ["categories"] as const,
-  PRODUCTS: (params: {
-    page: number;
-    search: string;
-    activeFilter: string;
-    categoryId?: number;
-    sortField: string;
-    sortDir: string;
-  }) =>
+  MY_STORES: ["stores", "mine"] as const,
+  CATEGORIES: (storeId: number | null) => ["categories", storeId] as const,
+  PRODUCTS: (
+    storeId: number | null,
+    params: {
+      page: number;
+      search: string;
+      activeFilter: string;
+      categoryId?: number;
+      sortField: string;
+      sortDir: string;
+    },
+  ) =>
     [
       "products",
+      storeId,
       params.page,
       params.search,
       params.activeFilter,
@@ -17,5 +22,9 @@ export const QUERY_KEYS = {
       params.sortField,
       params.sortDir,
     ] as const,
-  PRODUCT: (id?: string) => ["product", id] as const,
+  PRODUCT: (storeId: number | null, id?: string) =>
+    ["product", storeId, id] as const,
+  TOP_STORES: (limit: number) => ["stores", "top", limit] as const,
+  STORES: (params: { page: number; search: string }) =>
+    ["stores", "search", params.page, params.search] as const,
 };

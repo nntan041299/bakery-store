@@ -1,4 +1,4 @@
-import { request, ENDPOINT, productByIdEndpoint } from "@/rest";
+import { request, storeProductsEndpoint, storeProductByIdEndpoint } from "@/rest";
 import { Category } from "@/service/category";
 
 export interface Product {
@@ -48,7 +48,7 @@ export interface ListProductsParams {
   sort?: string;
 }
 
-const buildQuery = (params: ListProductsParams): string => {
+const buildQuery = (storeId: number, params: ListProductsParams): string => {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.active !== undefined) query.set("active", String(params.active));
@@ -58,17 +58,19 @@ const buildQuery = (params: ListProductsParams): string => {
   if (params.size !== undefined) query.set("size", String(params.size));
   if (params.sort) query.set("sort", params.sort);
   const queryString = query.toString();
-  return queryString
-    ? `${ENDPOINT.PRODUCTS}?${queryString}`
-    : ENDPOINT.PRODUCTS;
+  const base = storeProductsEndpoint(storeId);
+  return queryString ? `${base}?${queryString}` : base;
 };
 
-export const listProducts = async (params: ListProductsParams = {}) => {
-  return request.get({ path: buildQuery(params) });
+export const listProducts = async (
+  storeId: number,
+  params: ListProductsParams = {},
+) => {
+  return request.get({ path: buildQuery(storeId, params) });
 };
 
-export const getProduct = async (id: string | number) => {
-  return request.get({ path: productByIdEndpoint(id) });
+export const getProduct = async (storeId: number, id: string | number) => {
+  return request.get({ path: storeProductByIdEndpoint(storeId, id) });
 };
 
 const buildProductFormData = (payload: ProductFormPayload): FormData => {
@@ -85,19 +87,23 @@ const buildProductFormData = (payload: ProductFormPayload): FormData => {
   return formData;
 };
 
-export const createProduct = async (payload: ProductFormPayload) => {
+export const createProduct = async (
+  storeId: number,
+  payload: ProductFormPayload,
+) => {
   return request.upload({
-    path: ENDPOINT.PRODUCTS,
+    path: storeProductsEndpoint(storeId),
     formData: buildProductFormData(payload),
   });
 };
 
 export const updateProduct = async (
+  storeId: number,
   id: string | number,
   payload: ProductFormPayload,
 ) => {
   return request.upload({
-    path: productByIdEndpoint(id),
+    path: storeProductByIdEndpoint(storeId, id),
     formData: buildProductFormData(payload),
     method: "put",
   });

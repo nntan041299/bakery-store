@@ -32,4 +32,7 @@ public class CreateUserRequest {
 
     @NotNull(message = "Role is required")
     private Role role;
+
+    @Size(max = 150, message = "Shop name must not exceed 150 characters")
+    private String shopName;
 }

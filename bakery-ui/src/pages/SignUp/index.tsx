@@ -13,6 +13,7 @@ interface SignupErrors {
   email: string;
   password: string;
   confirmPassword: string;
+  shopName: string;
 }
 
 const SignUp = () => {
@@ -24,6 +25,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<RegisterableRole>("CUSTOMER");
+  const [shopName, setShopName] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -34,6 +36,7 @@ const SignUp = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    shopName: "",
   });
 
   const { mutate: register, isPending, isError, error } = useRegister();
@@ -45,7 +48,9 @@ const SignUp = () => {
       email: string;
       password: string;
       confirmPassword: string;
-    } = { fullName, username, email, password, confirmPassword },
+      role: RegisterableRole;
+      shopName: string;
+    } = { fullName, username, email, password, confirmPassword, role, shopName },
   ): boolean {
     const next: SignupErrors = {
       fullName: "",
@@ -53,6 +58,7 @@ const SignUp = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      shopName: "",
     };
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -70,6 +76,9 @@ const SignUp = () => {
     ) {
       next.confirmPassword = "Passwords do not match";
     }
+    if (values.role === "SHOP_OWNER" && !values.shopName.trim()) {
+      next.shopName = "Required";
+    }
 
     setSignupErrors(next);
     return Object.values(next).every((v) => !v);
@@ -78,7 +87,14 @@ const SignUp = () => {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!signupValidate()) return;
-    register({ fullName, username, email, password, role });
+    register({
+      fullName,
+      username,
+      email,
+      password,
+      role,
+      shopName: role === "SHOP_OWNER" ? shopName.trim() : undefined,
+    });
   }
 
   const clearError = (key: keyof SignupErrors) => {
@@ -285,6 +301,31 @@ const SignUp = () => {
                 </label>
               </div>
             </div>
+
+            {/* Row 5: Shop name — only for shop owners */}
+            {role === "SHOP_OWNER" && (
+              <label className="block">
+                <span className="form-label">Shop name</span>
+                <input
+                  type="text"
+                  value={shopName}
+                  onChange={(e) => {
+                    setShopName(e.target.value);
+                    clearError("shopName");
+                  }}
+                  onBlur={() => signupValidate()}
+                  disabled={isPending}
+                  placeholder="Sunshine Bakery"
+                  aria-invalid={!!signupErrors.shopName}
+                  className={`form-input ${signupErrors.shopName ? "form-input-error" : ""}`}
+                />
+                {signupErrors.shopName && (
+                  <small className="form-field-error">
+                    {signupErrors.shopName}
+                  </small>
+                )}
+              </label>
+            )}
 
             <button disabled={isPending} className="btn-primary mt-1">
               {isPending ? "Creating account…" : "Create Account"}

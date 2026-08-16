@@ -14,6 +14,7 @@ import com.nntan041299.bakeryservice.security.JwtUtil;
 import com.nntan041299.bakeryservice.security.TokenBlacklistService;
 import com.nntan041299.bakeryservice.auth.entity.User;
 import com.nntan041299.bakeryservice.auth.repository.UserRepository;
+import com.nntan041299.bakeryservice.store.service.StoreService;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -36,6 +37,7 @@ public class AuthService extends AbstractAuthenticationService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final CurrentUserProvider currentUserProvider;
+    private final StoreService storeService;
 
     public AuthService(UserDetailsService userDetailsService,
                         PasswordEncoder passwordEncoder,
@@ -43,7 +45,8 @@ public class AuthService extends AbstractAuthenticationService {
                         TokenBlacklistService tokenBlacklistService,
                         UserRepository userRepository,
                         UserMapper userMapper,
-                        CurrentUserProvider currentUserProvider) {
+                        CurrentUserProvider currentUserProvider,
+                        StoreService storeService) {
         super(jwtUtil);
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
@@ -51,10 +54,12 @@ public class AuthService extends AbstractAuthenticationService {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.currentUserProvider = currentUserProvider;
+        this.storeService = storeService;
     }
 
     private static final Set<Role> REGISTERABLE_ROLES = EnumSet.of(Role.CUSTOMER, Role.SHOP_OWNER);
 
+    @Transactional
     public TokenResponse register(CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
@@ -64,6 +69,9 @@ public class AuthService extends AbstractAuthenticationService {
         }
         if (!REGISTERABLE_ROLES.contains(request.getRole())) {
             throw new IllegalArgumentException("Role must be one of: " + REGISTERABLE_ROLES);
+        }
+        if (request.getRole() == Role.SHOP_OWNER && !StringUtils.hasText(request.getShopName())) {
+            throw new IllegalArgumentException("Shop name is required for shop owners");
         }
 
         User user = User.builder()
@@ -76,6 +84,11 @@ public class AuthService extends AbstractAuthenticationService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        if (savedUser.getRole() == Role.SHOP_OWNER) {
+            storeService.createStore(savedUser.getId(), request.getShopName().trim());
+        }
+
         return issueTokens(savedUser);
     }
 

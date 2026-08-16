@@ -1,11 +1,11 @@
 package com.nntan041299.bakeryservice.category.service;
 
-import com.nntan041299.bakeryservice.auth.service.CurrentUserProvider;
 import com.nntan041299.bakeryservice.category.dto.CategoryResponse;
 import com.nntan041299.bakeryservice.category.entity.Category;
 import com.nntan041299.bakeryservice.category.exception.CategoryNotFoundException;
 import com.nntan041299.bakeryservice.category.repository.CategoryRepository;
 import com.nntan041299.bakeryservice.product.repository.ProductRepository;
+import com.nntan041299.bakeryservice.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,29 +21,29 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final CurrentUserProvider currentUserProvider;
+    private final StoreService storeService;
 
-    public List<CategoryResponse> listCategories() {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
-        return categoryRepository.findByOwnerIdOrderByNameAsc(ownerId).stream()
+    public List<CategoryResponse> listCategories(Long storeId) {
+        storeService.assertStoreOwnership(storeId);
+        return categoryRepository.findByStoreIdOrderByNameAsc(storeId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Transactional
-    public CategoryResponse createCategory(String name) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
-        Category category = resolveOrCreate(ownerId, List.of(name)).iterator().next();
+    public CategoryResponse createCategory(Long storeId, String name) {
+        storeService.assertStoreOwnership(storeId);
+        Category category = resolveOrCreate(storeId, List.of(name)).iterator().next();
         return toResponse(category);
     }
 
     @Transactional
-    public CategoryResponse updateCategory(Long id, String name) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
-        Category category = findOwnedCategory(id, ownerId);
+    public CategoryResponse updateCategory(Long storeId, Long id, String name) {
+        storeService.assertStoreOwnership(storeId);
+        Category category = findOwnedCategory(storeId, id);
 
         String trimmed = name.trim();
-        categoryRepository.findByOwnerIdAndNameIgnoreCase(ownerId, trimmed)
+        categoryRepository.findByStoreIdAndNameIgnoreCase(storeId, trimmed)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("Category already exists: " + trimmed);
@@ -54,14 +54,14 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Long id) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
-        Category category = findOwnedCategory(id, ownerId);
+    public void deleteCategory(Long storeId, Long id) {
+        storeService.assertStoreOwnership(storeId);
+        Category category = findOwnedCategory(storeId, id);
         categoryRepository.delete(category);
     }
 
     @Transactional
-    public Set<Category> resolveOrCreate(Long ownerId, List<String> names) {
+    public Set<Category> resolveOrCreate(Long storeId, List<String> names) {
         Set<Category> categories = new LinkedHashSet<>();
         if (names == null) {
             return categories;
@@ -71,9 +71,9 @@ public class CategoryService {
                 continue;
             }
             String name = rawName.trim();
-            Category category = categoryRepository.findByOwnerIdAndNameIgnoreCase(ownerId, name)
+            Category category = categoryRepository.findByStoreIdAndNameIgnoreCase(storeId, name)
                     .orElseGet(() -> categoryRepository.save(Category.builder()
-                            .ownerId(ownerId)
+                            .storeId(storeId)
                             .name(name)
                             .build()));
             categories.add(category);
@@ -81,9 +81,9 @@ public class CategoryService {
         return categories;
     }
 
-    private Category findOwnedCategory(Long id, Long ownerId) {
+    private Category findOwnedCategory(Long storeId, Long id) {
         return categoryRepository.findById(id)
-                .filter(category -> category.getOwnerId().equals(ownerId))
+                .filter(category -> category.getStoreId().equals(storeId))
                 .orElseThrow(() -> new CategoryNotFoundException(id));
     }
 

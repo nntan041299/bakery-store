@@ -11,8 +11,8 @@ public final class ProductSpecifications {
     private ProductSpecifications() {
     }
 
-    public static Specification<Product> ownerIs(Long ownerId) {
-        return (root, query, cb) -> cb.equal(root.get("ownerId"), ownerId);
+    public static Specification<Product> storeIs(Long storeId) {
+        return (root, query, cb) -> cb.equal(root.get("storeId"), storeId);
     }
 
     public static Specification<Product> searchNameOrSku(String search) {

@@ -1,25 +1,25 @@
-package com.nntan041299.bakeryservice.category.entity;
+package com.nntan041299.bakeryservice.store.entity;
 
 import com.nntan041299.bakeryservice.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "stores")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category extends BaseEntity {
+public class Store extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "store_id", nullable = false)
-    private Long storeId;
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 150)
     private String name;
 }

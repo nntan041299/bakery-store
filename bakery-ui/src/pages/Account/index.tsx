@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/user/selectors";
-import { setUserInfo } from "@/redux/user";
-import { updateUserInfo } from "@/service/user";
 import Layout from "@/layouts/Layout";
-import { AppDispatch } from "@/redux/store";
+import { SectionCard, Field, Input } from "@/components/Form";
+import PasswordInput from "@/components/PasswordInput";
+import { useUpdateProfile } from "@/hook/useUpdateProfile";
+import { useChangePassword } from "@/hook/useChangePassword";
+import { ACCOUNT_TEXT } from "@/constant/account";
+import { FONT_DISPLAY, FONT_SANS } from "@/constant/common";
 
 interface FormState {
   fullName: string;
@@ -18,179 +20,50 @@ interface PasswordFormState {
   confirmPassword: string;
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-surface-100">
-        <h2
-          className="text-sm font-semibold text-surface-700 uppercase tracking-widest"
-          style={{ fontFamily: "var(--font-sans)" }}
-        >
-          {title}
-        </h2>
-      </div>
-      <div className="px-6 py-5">{children}</div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  children,
-  error,
-}: {
-  label: string;
-  children: React.ReactNode;
-  error?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label
-        className="text-sm font-medium text-surface-700"
-        style={{ fontFamily: "var(--font-sans)" }}
-      >
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p
-          className="text-xs text-red-500"
-          style={{ fontFamily: "var(--font-sans)" }}
-        >
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={`
-        w-full px-3.5 py-2.5 rounded-xl border border-surface-200 text-sm text-surface-900
-        bg-white placeholder:text-surface-400
-        focus:outline-none focus:ring-2 focus:ring-ink-900/20 focus:border-ink-900/40
-        disabled:bg-surface-50 disabled:text-surface-400
-        transition-all duration-150
-        ${props.className ?? ""}
-      `}
-      style={{ fontFamily: "var(--font-sans)" }}
-    />
-  );
-}
-
-function PasswordInput({
-  value,
-  onChange,
-  placeholder,
-  name,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  name: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative">
-      <Input
-        type={show ? "text" : "password"}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="pr-10"
-      />
-      <button
-        type="button"
-        onClick={() => setShow((p) => !p)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 transition-colors cursor-pointer"
-        tabIndex={-1}
-      >
-        <i className={`pi ${show ? "pi-eye-slash" : "pi-eye"} text-sm`} />
-      </button>
-    </div>
-  );
-}
+const EMPTY_PASSWORD_FORM: PasswordFormState = {
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+};
 
 const Account = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector(selectUser);
 
   const [profileForm, setProfileForm] = useState<FormState>(() => ({
     fullName: [user.firstName, user.lastName].filter(Boolean).join(" "),
     email: user.email ?? "",
   }));
-  const [profileError, setProfileError] = useState("");
-  const [profileSuccess, setProfileSuccess] = useState("");
+  const [profileValidationError, setProfileValidationError] = useState("");
 
-  const [passwordForm, setPasswordForm] = useState<PasswordFormState>({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordForm, setPasswordForm] = useState<PasswordFormState>(
+    EMPTY_PASSWORD_FORM,
+  );
+  const [passwordValidationError, setPasswordValidationError] = useState("");
 
-  const { mutate: saveProfile, isPending: savingProfile } = useMutation({
-    mutationFn: updateUserInfo,
-    onSuccess: (res) => {
-      const data = res.data.data;
-      const parts = (data.fullName ?? "").trim().split(/\s+/);
-      dispatch(
-        setUserInfo({
-          id: String(data.id),
-          username: data.username,
-          email: data.email,
-          firstName: parts[0] ?? "",
-          lastName: parts.slice(1).join(" ") || undefined,
-          avatarUrl: user.avatarUrl,
-          role: user.role,
-        }),
-      );
-      setProfileSuccess("Profile updated.");
-      setTimeout(() => setProfileSuccess(""), 3000);
-    },
-    onError: () => {
-      setProfileError("Failed to update profile. Please try again.");
-    },
-  });
+  const {
+    saveProfile,
+    isPending: savingProfile,
+    error: profileError,
+    success: profileSuccess,
+  } = useUpdateProfile();
 
-  const { mutate: savePassword, isPending: savingPassword } = useMutation({
-    mutationFn: updateUserInfo,
-    onSuccess: () => {
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setPasswordSuccess("Password changed successfully.");
-      setTimeout(() => setPasswordSuccess(""), 3000);
-    },
-    onError: () => {
-      setPasswordError("Incorrect current password or request failed.");
-    },
-  });
+  const {
+    changePassword,
+    isPending: savingPassword,
+    error: passwordError,
+    success: passwordSuccess,
+  } = useChangePassword();
 
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfileError("");
-    setProfileSuccess("");
+    setProfileValidationError("");
     setProfileForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileError("");
+    setProfileValidationError("");
     if (!profileForm.fullName.trim()) {
-      setProfileError("Full name is required.");
+      setProfileValidationError(ACCOUNT_TEXT.ERROR_FULL_NAME_REQUIRED);
       return;
     }
     saveProfile({
@@ -200,40 +73,46 @@ const Account = () => {
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordError("");
-    setPasswordSuccess("");
+    setPasswordValidationError("");
     setPasswordForm((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError("");
+    setPasswordValidationError("");
     if (!passwordForm.currentPassword) {
-      setPasswordError("Current password is required.");
+      setPasswordValidationError(ACCOUNT_TEXT.ERROR_CURRENT_PASSWORD_REQUIRED);
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters.");
+      setPasswordValidationError(ACCOUNT_TEXT.ERROR_PASSWORD_TOO_SHORT);
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError("Passwords do not match.");
+      setPasswordValidationError(ACCOUNT_TEXT.ERROR_PASSWORD_MISMATCH);
       return;
     }
-    savePassword({
-      currentPassword: passwordForm.currentPassword,
-      newPassword: passwordForm.newPassword,
-    });
+    changePassword(
+      {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      },
+      () => setPasswordForm(EMPTY_PASSWORD_FORM),
+    );
   };
 
   const fullName =
-    [user.firstName, user.lastName].filter(Boolean).join(" ") || "User";
+    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+    ACCOUNT_TEXT.DEFAULT_USER_NAME;
   const initials =
     user.firstName && user.lastName
       ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
       : user.firstName
         ? user.firstName[0].toUpperCase()
         : "?";
+
+  const profileErrorMessage = profileValidationError || profileError;
+  const passwordErrorMessage = passwordValidationError || passwordError;
 
   return (
     <Layout>
@@ -242,15 +121,15 @@ const Account = () => {
         <div>
           <h1
             className="text-2xl font-bold text-surface-900"
-            style={{ fontFamily: "var(--font-display)" }}
+            style={{ fontFamily: FONT_DISPLAY }}
           >
-            Account
+            {ACCOUNT_TEXT.TITLE}
           </h1>
           <p
             className="text-sm text-surface-500 mt-1"
-            style={{ fontFamily: "var(--font-sans)" }}
+            style={{ fontFamily: FONT_SANS }}
           >
-            Manage your profile and security settings.
+            {ACCOUNT_TEXT.SUBTITLE}
           </p>
         </div>
 
@@ -259,7 +138,7 @@ const Account = () => {
           <div
             className="w-14 h-14 rounded-full overflow-hidden bg-white/10 flex items-center
                        justify-center text-parchment text-xl font-bold flex-shrink-0"
-            style={{ fontFamily: "var(--font-sans)" }}
+            style={{ fontFamily: FONT_SANS }}
           >
             {user.avatarUrl ? (
               <img
@@ -274,13 +153,13 @@ const Account = () => {
           <div>
             <p
               className="text-white font-semibold text-base"
-              style={{ fontFamily: "var(--font-display)" }}
+              style={{ fontFamily: FONT_DISPLAY }}
             >
               {fullName}
             </p>
             <p
               className="text-white/50 text-sm"
-              style={{ fontFamily: "var(--font-sans)" }}
+              style={{ fontFamily: FONT_SANS }}
             >
               @{user.username}
             </p>
@@ -288,37 +167,37 @@ const Account = () => {
         </div>
 
         {/* Profile section */}
-        <SectionCard title="Profile">
+        <SectionCard title={ACCOUNT_TEXT.PROFILE_SECTION_TITLE}>
           <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <Field label="Full name">
+            <Field label={ACCOUNT_TEXT.LABEL_FULL_NAME}>
               <Input
                 name="fullName"
                 value={profileForm.fullName}
                 onChange={handleProfileChange}
-                placeholder="Your full name"
+                placeholder={ACCOUNT_TEXT.PLACEHOLDER_FULL_NAME}
               />
             </Field>
-            <Field label="Email" error={undefined}>
+            <Field label={ACCOUNT_TEXT.LABEL_EMAIL}>
               <Input
                 name="email"
                 type="email"
                 value={profileForm.email}
                 onChange={handleProfileChange}
-                placeholder="Leave blank to keep current email"
+                placeholder={ACCOUNT_TEXT.PLACEHOLDER_EMAIL}
               />
             </Field>
-            {profileError && (
+            {profileErrorMessage && (
               <p
                 className="text-sm text-red-500"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
-                {profileError}
+                {profileErrorMessage}
               </p>
             )}
             {profileSuccess && (
               <p
                 className="text-sm text-sage-600"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
                 {profileSuccess}
               </p>
@@ -331,54 +210,54 @@ const Account = () => {
                 className="px-5 py-2.5 rounded-xl bg-ink-900 text-parchment text-sm font-semibold
                            hover:bg-ink-800 transition-colors duration-150 cursor-pointer
                            disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
-                {savingProfile ? "Saving…" : "Save changes"}
+                {savingProfile ? ACCOUNT_TEXT.SAVING : ACCOUNT_TEXT.SAVE_CHANGES}
               </button>
             </div>
           </form>
         </SectionCard>
 
         {/* Change password section */}
-        <SectionCard title="Change password">
+        <SectionCard title={ACCOUNT_TEXT.PASSWORD_SECTION_TITLE}>
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <Field label="Current password">
+            <Field label={ACCOUNT_TEXT.LABEL_CURRENT_PASSWORD}>
               <PasswordInput
                 name="currentPassword"
                 value={passwordForm.currentPassword}
                 onChange={handlePasswordChange}
-                placeholder="Current password"
+                placeholder={ACCOUNT_TEXT.PLACEHOLDER_CURRENT_PASSWORD}
               />
             </Field>
-            <Field label="New password">
+            <Field label={ACCOUNT_TEXT.LABEL_NEW_PASSWORD}>
               <PasswordInput
                 name="newPassword"
                 value={passwordForm.newPassword}
                 onChange={handlePasswordChange}
-                placeholder="Min. 8 characters"
+                placeholder={ACCOUNT_TEXT.PLACEHOLDER_NEW_PASSWORD}
               />
             </Field>
-            <Field label="Confirm new password">
+            <Field label={ACCOUNT_TEXT.LABEL_CONFIRM_PASSWORD}>
               <PasswordInput
                 name="confirmPassword"
                 value={passwordForm.confirmPassword}
                 onChange={handlePasswordChange}
-                placeholder="Repeat new password"
+                placeholder={ACCOUNT_TEXT.PLACEHOLDER_CONFIRM_PASSWORD}
               />
             </Field>
 
-            {passwordError && (
+            {passwordErrorMessage && (
               <p
                 className="text-sm text-red-500"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
-                {passwordError}
+                {passwordErrorMessage}
               </p>
             )}
             {passwordSuccess && (
               <p
                 className="text-sm text-sage-600"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
                 {passwordSuccess}
               </p>
@@ -391,9 +270,11 @@ const Account = () => {
                 className="px-5 py-2.5 rounded-xl bg-ink-900 text-parchment text-sm font-semibold
                            hover:bg-ink-800 transition-colors duration-150 cursor-pointer
                            disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ fontFamily: "var(--font-sans)" }}
+                style={{ fontFamily: FONT_SANS }}
               >
-                {savingPassword ? "Saving…" : "Change password"}
+                {savingPassword
+                  ? ACCOUNT_TEXT.CHANGING_PASSWORD
+                  : ACCOUNT_TEXT.CHANGE_PASSWORD}
               </button>
             </div>
           </form>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { listCategories, Category } from "@/service/category";
+import { useCategories } from "@/hook/useCategories";
+import { CATEGORY_PICKER_TEXT } from "@/constant/products";
+import { FONT_SANS } from "@/constant/common";
 
 interface CategoryPickerProps {
   value: string[];
@@ -12,13 +13,7 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const res = await listCategories();
-      return res.data.data as Category[];
-    },
-  });
+  const { data: categories = [] } = useCategories();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -88,7 +83,7 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
           <span
             key={name}
             className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-sage-100 text-sage-700 text-xs font-medium"
-            style={{ fontFamily: "var(--font-sans)" }}
+            style={{ fontFamily: FONT_SANS }}
           >
             {name}
             <button
@@ -98,7 +93,7 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
                 removeCategory(name);
               }}
               className="cursor-pointer hover:text-sage-900"
-              aria-label={`Remove ${name}`}
+              aria-label={CATEGORY_PICKER_TEXT.REMOVE_LABEL(name)}
             >
               <i className="pi pi-times text-[10px]" />
             </button>
@@ -112,10 +107,12 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder={value.length === 0 ? "Add a category…" : ""}
+          placeholder={
+            value.length === 0 ? CATEGORY_PICKER_TEXT.PLACEHOLDER : ""
+          }
           className="flex-1 min-w-[100px] px-1.5 py-1 text-sm text-surface-900 placeholder:text-surface-400
                      bg-transparent focus:outline-none"
-          style={{ fontFamily: "var(--font-sans)" }}
+          style={{ fontFamily: FONT_SANS }}
         />
       </div>
 
@@ -130,10 +127,10 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
               onClick={() => addCategory(query)}
               className="w-full text-left px-3.5 py-2.5 text-sm text-ink-900 font-medium hover:bg-surface-50
                          cursor-pointer flex items-center gap-2"
-              style={{ fontFamily: "var(--font-sans)" }}
+              style={{ fontFamily: FONT_SANS }}
             >
               <i className="pi pi-plus text-xs" />
-              Create category &quot;{query}&quot;
+              {CATEGORY_PICKER_TEXT.CREATE_OPTION(query)}
             </button>
           )}
           {suggestions.map((name) => (
@@ -142,7 +139,7 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
               key={name}
               onClick={() => addCategory(name)}
               className="w-full text-left px-3.5 py-2.5 text-sm text-surface-700 hover:bg-surface-50 cursor-pointer"
-              style={{ fontFamily: "var(--font-sans)" }}
+              style={{ fontFamily: FONT_SANS }}
             >
               {name}
             </button>

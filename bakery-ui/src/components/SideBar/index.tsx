@@ -1,9 +1,9 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
-import { signOut } from "@/service/auth";
-import { useAuth } from "@/context/AuthProvider";
+import { useSignOut } from "@/hook/useSignOut";
 import { selectUser } from "@/redux/user/selectors";
+import { SIDEBAR_TEXT } from "@/constant/sidebar";
+import { FONT_DISPLAY, FONT_SANS } from "@/constant/common";
 
 interface NavItem {
   path: string;
@@ -12,11 +12,11 @@ interface NavItem {
 }
 
 const BASE_NAV_ITEMS: NavItem[] = [
-  { path: "/", label: "Home", icon: "pi-th-large" },
+  { path: "/", label: SIDEBAR_TEXT.HOME, icon: "pi-th-large" },
 ];
 
 const SHOP_OWNER_NAV_ITEMS: NavItem[] = [
-  { path: "/products", label: "Inventory", icon: "pi-box" },
+  { path: "/products", label: SIDEBAR_TEXT.INVENTORY, icon: "pi-box" },
 ];
 
 interface SideBarProps {
@@ -27,7 +27,6 @@ interface SideBarProps {
 export default function SideBar({ open, onClose }: SideBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { removeToken } = useAuth();
   const { role } = useSelector(selectUser);
 
   const navItems =
@@ -35,11 +34,7 @@ export default function SideBar({ open, onClose }: SideBarProps) {
       ? [...BASE_NAV_ITEMS, ...SHOP_OWNER_NAV_ITEMS]
       : BASE_NAV_ITEMS;
 
-  const { mutate: handleSignOut, isPending } = useMutation({
-    mutationFn: signOut,
-    onSuccess: () => removeToken(),
-    onError: () => removeToken(),
-  });
+  const { mutate: handleSignOut, isPending } = useSignOut();
 
   const handleNav = (path: string) => {
     navigate(path);
@@ -52,16 +47,17 @@ export default function SideBar({ open, onClose }: SideBarProps) {
       <div className="h-14 flex items-center justify-between px-5 border-b border-white/8 flex-shrink-0">
         <span
           className="text-lg font-bold tracking-tight text-parchment"
-          style={{ fontFamily: "var(--font-display)" }}
+          style={{ fontFamily: FONT_DISPLAY }}
         >
-          App <span className="text-gold-500">Name</span>
+          {SIDEBAR_TEXT.BRAND_PREFIX}{" "}
+          <span className="text-gold-500">{SIDEBAR_TEXT.BRAND_SUFFIX}</span>
         </span>
         {/* Close button — mobile only */}
         {onClose && (
           <button
             onClick={onClose}
             className="md:hidden text-white/50 hover:text-white transition-colors p-1 cursor-pointer"
-            aria-label="Close menu"
+            aria-label={SIDEBAR_TEXT.CLOSE_MENU}
           >
             <i className="pi pi-times text-base" />
           </button>
@@ -88,7 +84,7 @@ export default function SideBar({ open, onClose }: SideBarProps) {
                     : "text-white/50 hover:bg-white/6 hover:text-white/80"
                 }
               `}
-              style={{ fontFamily: "var(--font-sans)" }}
+              style={{ fontFamily: FONT_SANS }}
             >
               <i
                 className={`pi ${icon} text-sm ${active ? "text-gold-400" : ""}`}
@@ -108,10 +104,10 @@ export default function SideBar({ open, onClose }: SideBarProps) {
                      text-white/40 hover:bg-white/6 hover:text-white/70
                      transition-colors duration-150 cursor-pointer
                      disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ fontFamily: "var(--font-sans)" }}
+          style={{ fontFamily: FONT_SANS }}
         >
           <i className="pi pi-sign-out text-sm" />
-          {isPending ? "Signing out…" : "Sign out"}
+          {isPending ? SIDEBAR_TEXT.SIGNING_OUT : SIDEBAR_TEXT.SIGN_OUT}
         </button>
       </div>
     </aside>

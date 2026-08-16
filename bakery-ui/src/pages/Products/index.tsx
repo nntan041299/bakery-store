@@ -4,6 +4,7 @@ import Layout from "@/layouts/Layout";
 import StatusBadge from "@/components/StatusBadge";
 import SortableHeader from "@/components/SortableHeader";
 import CategoryFilter from "@/components/CategoryFilter";
+import Dropdown, { DropdownOption } from "@/components/Dropdown";
 import { Product } from "@/service/product";
 import { useCategories } from "@/hook/useCategories";
 import { useProducts } from "@/hook/useProducts";
@@ -12,6 +13,12 @@ import { FONT_DISPLAY, FONT_SANS } from "@/constant/common";
 
 type ActiveFilter = "all" | "active" | "inactive";
 type SortField = "name" | "price" | "sku" | "active";
+
+const ACTIVE_FILTER_OPTIONS: DropdownOption<ActiveFilter>[] = [
+  { value: "all", label: PRODUCTS_TEXT.STATUS_ALL, dotClassName: "bg-surface-300" },
+  { value: "active", label: PRODUCTS_TEXT.STATUS_ACTIVE, dotClassName: "bg-sage-500" },
+  { value: "inactive", label: PRODUCTS_TEXT.STATUS_INACTIVE, dotClassName: "bg-surface-400" },
+];
 type SortDir = "asc" | "desc";
 
 const Products = () => {
@@ -117,20 +124,11 @@ const Products = () => {
               style={{ fontFamily: FONT_SANS }}
             />
           </div>
-          <select
+          <Dropdown
             value={activeFilter}
-            onChange={(e) =>
-              handleActiveFilterChange(e.target.value as ActiveFilter)
-            }
-            className="px-3.5 py-2.5 rounded-xl border border-surface-200 text-sm text-surface-900
-                       bg-white focus:outline-none focus:ring-2 focus:ring-ink-900/20 focus:border-ink-900/40
-                       transition-all duration-150 cursor-pointer"
-            style={{ fontFamily: FONT_SANS }}
-          >
-            <option value="all">{PRODUCTS_TEXT.STATUS_ALL}</option>
-            <option value="active">{PRODUCTS_TEXT.STATUS_ACTIVE}</option>
-            <option value="inactive">{PRODUCTS_TEXT.STATUS_INACTIVE}</option>
-          </select>
+            options={ACTIVE_FILTER_OPTIONS}
+            onChange={handleActiveFilterChange}
+          />
           <CategoryFilter
             categories={categories}
             value={categoryId}

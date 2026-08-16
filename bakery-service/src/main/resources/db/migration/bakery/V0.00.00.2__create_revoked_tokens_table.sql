@@ -1,4 +1,4 @@
-CREATE TABLE revoked_tokens
+CREATE TABLE IF NOT EXISTS revoked_tokens
 (
     token      TEXT         NOT NULL PRIMARY KEY,
     expires_at TIMESTAMP    NOT NULL,
@@ -8,4 +8,4 @@ CREATE TABLE revoked_tokens
     updated_by VARCHAR(100)
 );
 
-CREATE INDEX idx_revoked_tokens_expires_at ON revoked_tokens (expires_at);
+CREATE INDEX IF NOT EXISTS idx_revoked_tokens_expires_at ON revoked_tokens (expires_at);

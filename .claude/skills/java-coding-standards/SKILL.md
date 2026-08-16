@@ -16,6 +16,7 @@ Standards for readable, maintainable Java (17+) code in Spring Boot and Quarkus 
 - Working with records, sealed classes, or pattern matching (Java 17+)
 - Reviewing use of Optional, streams, or generics
 - Structuring packages and project layout
+- Writing or reviewing SQL migration scripts (Flyway/Liquibase)
 - **[QUARKUS]**: Working with CDI scopes, Panache entities, or reactive pipelines
 
 ## How It Works
@@ -332,6 +333,57 @@ public interface MarketConfig {
 // [QUARKUS] Simple values with @ConfigProperty
 @ConfigProperty(name = "market.max-page-size", defaultValue = "100")
 int maxPageSize;
+```
+
+## Database Migrations (Flyway/Liquibase)
+
+Always write migration SQL so it can be safely re-run against a database where the
+change may already be partially or fully applied. Never assume the script only runs once.
+
+- `CREATE TABLE` → `CREATE TABLE IF NOT EXISTS`
+- `CREATE INDEX` → `CREATE INDEX IF NOT EXISTS`
+- `ALTER TABLE ... ADD COLUMN` → `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`
+- `DROP TABLE` / `DROP INDEX` / `DROP COLUMN` → add `IF EXISTS`
+- Named constraints (`ADD CONSTRAINT`) → guard with a `DO $$ ... IF NOT EXISTS ...` block
+  (Postgres has no `ADD CONSTRAINT IF NOT EXISTS`)
+- `INSERT` seed/reference data → use `INSERT ... ON CONFLICT DO NOTHING` (or `MERGE`/`upsert`
+  on other engines), never a bare `INSERT`
+- `CREATE TYPE` (enums) → guard with `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN NULL; END $$;`
+
+```sql
+-- PASS: idempotent table + index creation
+CREATE TABLE IF NOT EXISTS products
+(
+    id   BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_products_name ON products (name);
+
+-- PASS: idempotent column addition
+ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS quantity INTEGER NOT NULL DEFAULT 0;
+
+-- PASS: idempotent named constraint (Postgres)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'uk_categories_owner_id_name'
+    ) THEN
+        ALTER TABLE categories
+            ADD CONSTRAINT uk_categories_owner_id_name UNIQUE (owner_id, name);
+    END IF;
+END $$;
+
+-- PASS: idempotent seed data
+INSERT INTO categories (owner_id, name)
+VALUES (1, 'Bread')
+ON CONFLICT (owner_id, name) DO NOTHING;
+
+-- FAIL: fails on re-run once the table/column/index already exists
+CREATE TABLE products (id BIGSERIAL PRIMARY KEY);
+ALTER TABLE products ADD COLUMN quantity INTEGER NOT NULL DEFAULT 0;
+CREATE INDEX idx_products_name ON products (name);
 ```
 
 ## Testing Expectations

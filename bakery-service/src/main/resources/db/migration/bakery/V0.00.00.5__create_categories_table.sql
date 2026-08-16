@@ -1,4 +1,4 @@
-CREATE TABLE categories
+CREATE TABLE IF NOT EXISTS categories
 (
     id         BIGSERIAL    PRIMARY KEY,
     owner_id   BIGINT       NOT NULL REFERENCES users (id),
@@ -10,4 +10,4 @@ CREATE TABLE categories
     CONSTRAINT uk_categories_owner_id_name UNIQUE (owner_id, name)
 );
 
-CREATE INDEX idx_categories_owner_id ON categories (owner_id);
+CREATE INDEX IF NOT EXISTS idx_categories_owner_id ON categories (owner_id);

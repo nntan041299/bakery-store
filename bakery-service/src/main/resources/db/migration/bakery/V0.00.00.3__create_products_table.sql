@@ -1,4 +1,4 @@
-CREATE TABLE products
+CREATE TABLE IF NOT EXISTS products
 (
     id          BIGSERIAL      PRIMARY KEY,
     owner_id    BIGINT         NOT NULL REFERENCES users (id),
@@ -14,6 +14,6 @@ CREATE TABLE products
     updated_by  VARCHAR(100)
 );
 
-CREATE INDEX idx_products_owner_id ON products (owner_id);
-CREATE INDEX idx_products_name ON products (name);
-CREATE INDEX idx_products_sku ON products (sku);
+CREATE INDEX IF NOT EXISTS idx_products_owner_id ON products (owner_id);
+CREATE INDEX IF NOT EXISTS idx_products_name ON products (name);
+CREATE INDEX IF NOT EXISTS idx_products_sku ON products (sku);

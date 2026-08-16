@@ -9,6 +9,7 @@ import {
   Product,
   ProductFormPayload,
 } from "@/service/product";
+import CategoryPicker from "./CategoryPicker";
 
 interface FormState {
   name: string;
@@ -18,6 +19,7 @@ interface FormState {
   quantity: string;
   imageUrl: string;
   active: boolean;
+  categories: string[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -28,6 +30,7 @@ const EMPTY_FORM: FormState = {
   quantity: "",
   imageUrl: "",
   active: true,
+  categories: [],
 };
 
 function SectionCard({
@@ -115,6 +118,7 @@ const toFormState = (product?: Product): FormState =>
         quantity: String(product.quantity),
         imageUrl: product.imageUrl ?? "",
         active: product.active,
+        categories: product.categories.map((c) => c.name),
       }
     : EMPTY_FORM;
 
@@ -172,6 +176,7 @@ function ProductFormBody({
       isEdit ? updateProduct(id!, payload) : createProduct(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
       if (id) {
         queryClient.invalidateQueries({ queryKey: ["product", id] });
       }
@@ -233,6 +238,7 @@ function ProductFormBody({
       quantity,
       imageUrl: form.imageUrl.trim() || undefined,
       active: form.active,
+      categories: form.categories,
     });
   };
 
@@ -317,6 +323,15 @@ function ProductFormBody({
                 value={form.quantity}
                 onChange={handleChange}
                 placeholder="0"
+              />
+            </Field>
+
+            <Field label="Categories">
+              <CategoryPicker
+                value={form.categories}
+                onChange={(categories) =>
+                  setForm((p) => ({ ...p, categories }))
+                }
               />
             </Field>
 

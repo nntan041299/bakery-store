@@ -1,6 +1,7 @@
 package com.nntan041299.bakeryservice.product.service;
 
 import com.nntan041299.bakeryservice.auth.service.CurrentUserProvider;
+import com.nntan041299.bakeryservice.category.service.CategoryService;
 import com.nntan041299.bakeryservice.common.dto.PageResponse;
 import com.nntan041299.bakeryservice.product.dto.ProductRequest;
 import com.nntan041299.bakeryservice.product.dto.ProductResponse;
@@ -25,14 +26,16 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CurrentUserProvider currentUserProvider;
+    private final CategoryService categoryService;
 
-    public PageResponse<ProductResponse> listProducts(String search, Boolean active, Pageable pageable) {
+    public PageResponse<ProductResponse> listProducts(String search, Boolean active, Long categoryId, Pageable pageable) {
         Long ownerId = currentUserProvider.getCurrentUser().getId();
 
         Specification<Product> spec = Specification.allOf(Stream.of(
                         ProductSpecifications.ownerIs(ownerId),
                         ProductSpecifications.searchNameOrSku(search),
-                        ProductSpecifications.activeIs(active))
+                        ProductSpecifications.activeIs(active),
+                        ProductSpecifications.hasCategory(categoryId))
                 .filter(Objects::nonNull)
                 .toList());
 
@@ -60,6 +63,7 @@ public class ProductService {
                 .quantity(request.getQuantity())
                 .imageUrl(request.getImageUrl())
                 .active(request.getActive() == null || request.getActive())
+                .categories(categoryService.resolveOrCreate(ownerId, request.getCategories()))
                 .build();
 
         return productMapper.toResponse(productRepository.save(product));
@@ -80,6 +84,7 @@ public class ProductService {
         product.setQuantity(request.getQuantity());
         product.setImageUrl(request.getImageUrl());
         product.setActive(request.getActive() == null || request.getActive());
+        product.setCategories(categoryService.resolveOrCreate(product.getOwnerId(), request.getCategories()));
 
         return productMapper.toResponse(productRepository.save(product));
     }

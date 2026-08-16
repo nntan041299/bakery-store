@@ -7,6 +7,7 @@ export const ENDPOINT = {
   SIGN_OUT: "bakery-service/api/auth/logout",
   REFRESH_TOKEN: "bakery-service/api/auth/refresh",
   PRODUCTS: "bakery-service/api/products",
+  CATEGORIES: "bakery-service/api/categories",
 } as const;
 
 export const productByIdEndpoint = (id: string | number): string =>

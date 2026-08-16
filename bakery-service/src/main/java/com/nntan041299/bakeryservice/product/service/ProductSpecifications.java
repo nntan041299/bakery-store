@@ -1,6 +1,8 @@
 package com.nntan041299.bakeryservice.product.service;
 
+import com.nntan041299.bakeryservice.category.entity.Category;
 import com.nntan041299.bakeryservice.product.entity.Product;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -29,5 +31,18 @@ public final class ProductSpecifications {
             return null;
         }
         return (root, query, cb) -> cb.equal(root.get("active"), active);
+    }
+
+    public static Specification<Product> hasCategory(Long categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return (root, query, cb) -> {
+            if (query != null) {
+                query.distinct(true);
+            }
+            Join<Product, Category> categories = root.join("categories");
+            return cb.equal(categories.get("id"), categoryId);
+        };
     }
 }

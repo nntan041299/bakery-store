@@ -23,8 +23,9 @@ public class ProductController {
     public ResponseEntity<PageResponse<ProductResponse>> listProducts(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean active,
+            @RequestParam(required = false) Long categoryId,
             Pageable pageable) {
-        return ResponseEntity.ok(productService.listProducts(search, active, pageable));
+        return ResponseEntity.ok(productService.listProducts(search, active, categoryId, pageable));
     }
 
     @GetMapping("/{id}")

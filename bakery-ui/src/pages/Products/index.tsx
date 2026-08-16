@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/layouts/Layout";
 import { listProducts, Product, ProductPage } from "@/service/product";
+import { listCategories, Category } from "@/service/category";
+import CategoryFilter from "./CategoryFilter";
 
 type ActiveFilter = "all" | "active" | "inactive";
 type SortField = "name" | "price" | "sku" | "active";
@@ -65,6 +67,7 @@ const Products = () => {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+  const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(0);
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -80,14 +83,31 @@ const Products = () => {
   const activeParam =
     activeFilter === "all" ? undefined : activeFilter === "active";
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await listCategories();
+      return res.data.data as Category[];
+    },
+  });
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["products", page, search, activeFilter, sortField, sortDir],
+    queryKey: [
+      "products",
+      page,
+      search,
+      activeFilter,
+      categoryId,
+      sortField,
+      sortDir,
+    ],
     queryFn: async () => {
       const res = await listProducts({
         page,
         size: PAGE_SIZE,
         search: search || undefined,
         active: activeParam,
+        categoryId,
         sort: `${sortField},${sortDir}`,
       });
       return res.data.data as ProductPage;
@@ -106,6 +126,11 @@ const Products = () => {
 
   const handleActiveFilterChange = (value: ActiveFilter) => {
     setActiveFilter(value);
+    setPage(0);
+  };
+
+  const handleCategoryFilterChange = (value: number | undefined) => {
+    setCategoryId(value);
     setPage(0);
   };
 
@@ -172,6 +197,11 @@ const Products = () => {
             <option value="active">Active only</option>
             <option value="inactive">Inactive only</option>
           </select>
+          <CategoryFilter
+            categories={categories}
+            value={categoryId}
+            onChange={handleCategoryFilterChange}
+          />
         </div>
 
         {/* Table */}
@@ -238,6 +268,12 @@ const Products = () => {
                     >
                       Quantity
                     </th>
+                    <th
+                      className="px-4 py-3 text-left text-xs font-semibold text-surface-500 uppercase tracking-wider"
+                      style={{ fontFamily: "var(--font-sans)" }}
+                    >
+                      Categories
+                    </th>
                     <SortHeader
                       label="Status"
                       field="active"
@@ -278,6 +314,28 @@ const Products = () => {
                         style={{ fontFamily: "var(--font-sans)" }}
                       >
                         {product.quantity}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {product.categories.length === 0 ? (
+                            <span
+                              className="text-sm text-surface-400"
+                              style={{ fontFamily: "var(--font-sans)" }}
+                            >
+                              —
+                            </span>
+                          ) : (
+                            product.categories.map((category) => (
+                              <span
+                                key={category.id}
+                                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-100 text-surface-600"
+                                style={{ fontFamily: "var(--font-sans)" }}
+                              >
+                                {category.name}
+                              </span>
+                            ))
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge active={product.active} />

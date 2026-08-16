@@ -1,4 +1,5 @@
 import { request, ENDPOINT, productByIdEndpoint } from "@/rest";
+import { Category } from "@/service/category";
 
 export interface Product {
   id: number;
@@ -9,6 +10,7 @@ export interface Product {
   quantity: number;
   imageUrl?: string;
   active: boolean;
+  categories: Category[];
   createdAt: string;
   updatedAt: string;
 }
@@ -33,11 +35,13 @@ export interface ProductFormPayload {
   quantity: number;
   imageUrl?: string;
   active: boolean;
+  categories: string[];
 }
 
 export interface ListProductsParams {
   search?: string;
   active?: boolean;
+  categoryId?: number;
   page?: number;
   size?: number;
   sort?: string;
@@ -47,6 +51,8 @@ const buildQuery = (params: ListProductsParams): string => {
   const query = new URLSearchParams();
   if (params.search) query.set("search", params.search);
   if (params.active !== undefined) query.set("active", String(params.active));
+  if (params.categoryId !== undefined)
+    query.set("categoryId", String(params.categoryId));
   if (params.page !== undefined) query.set("page", String(params.page));
   if (params.size !== undefined) query.set("size", String(params.size));
   if (params.sort) query.set("sort", params.sort);

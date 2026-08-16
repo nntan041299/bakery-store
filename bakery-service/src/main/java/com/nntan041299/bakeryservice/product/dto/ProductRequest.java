@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -39,4 +40,6 @@ public class ProductRequest {
     private String imageUrl;
 
     private Boolean active;
+
+    private List<String> categories;
 }

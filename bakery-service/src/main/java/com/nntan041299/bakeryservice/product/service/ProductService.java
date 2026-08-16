@@ -89,6 +89,8 @@ public class ProductService {
         product.setQuantity(request.getQuantity());
         if (image != null && !image.isEmpty()) {
             product.setImageUrl(uploadImageIfPresent(image));
+        } else if (Boolean.TRUE.equals(request.getRemoveImage())) {
+            product.setImageUrl(null);
         }
         product.setActive(request.getActive() == null || request.getActive());
         product.setCategories(categoryService.resolveOrCreate(product.getOwnerId(), request.getCategories()));

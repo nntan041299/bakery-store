@@ -34,6 +34,7 @@ export interface ProductFormPayload {
   sku: string;
   quantity: number;
   imageFile?: File;
+  removeImage?: boolean;
   active: boolean;
   categories: string[];
 }
@@ -80,6 +81,7 @@ const buildProductFormData = (payload: ProductFormPayload): FormData => {
   formData.append("active", String(payload.active));
   payload.categories.forEach((category) => formData.append("categories", category));
   if (payload.imageFile) formData.append("image", payload.imageFile);
+  if (payload.removeImage) formData.append("removeImage", "true");
   return formData;
 };
 

@@ -87,6 +87,7 @@ function ProductFormBody({
     toFormState(initialProduct),
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [error, setError] = useState("");
 
   const { mutate: save, isPending: isSaving, getErrorMessage } =
@@ -139,6 +140,7 @@ function ProductFormBody({
       sku: form.sku.trim(),
       quantity,
       imageFile: imageFile ?? undefined,
+      removeImage: removeImage || undefined,
       active: form.active,
       categories: form.categories,
     };
@@ -184,10 +186,12 @@ function ProductFormBody({
               file={imageFile}
               onSelectFile={(file) => {
                 setImageFile(file);
+                setRemoveImage(false);
                 setForm((p) => ({ ...p, imageUrl: "" }));
               }}
               onRemove={() => {
                 setImageFile(null);
+                setRemoveImage(true);
                 setForm((p) => ({ ...p, imageUrl: "" }));
               }}
               disabled={isSaving}

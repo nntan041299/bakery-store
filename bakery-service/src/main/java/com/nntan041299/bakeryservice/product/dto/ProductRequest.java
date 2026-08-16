@@ -40,5 +40,7 @@ public class ProductRequest {
 
     private Boolean active;
 
+    private Boolean removeImage;
+
     private List<String> categories;
 }

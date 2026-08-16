@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Category } from "@/service/category";
 import { useCreateCategory } from "@/hook/useCategories";
+import { useClickOutside } from "@/hook/useClickOutside";
 import { CATEGORY_FILTER_TEXT } from "@/constant/products";
 import { FONT_SANS } from "@/constant/common";
 
@@ -17,18 +18,7 @@ const CategoryFilter = ({ categories, value, onChange }: CategoryFilterProps) =>
 
   const { mutate: addCategory, isPending: isCreating } = useCreateCategory();
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useClickOutside(containerRef, () => setIsOpen(false));
 
   const query = inputValue.trim();
   const hasExactMatch = categories.some(

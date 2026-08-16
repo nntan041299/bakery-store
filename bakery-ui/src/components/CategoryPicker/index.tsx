@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useCategories } from "@/hook/useCategories";
+import { useClickOutside } from "@/hook/useClickOutside";
 import { CATEGORY_PICKER_TEXT } from "@/constant/products";
 import { FONT_SANS } from "@/constant/common";
 
@@ -15,18 +16,7 @@ const CategoryPicker = ({ value, onChange }: CategoryPickerProps) => {
 
   const { data: categories = [] } = useCategories();
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useClickOutside(containerRef, () => setIsOpen(false));
 
   const selectedLower = value.map((v) => v.toLowerCase());
   const query = inputValue.trim();

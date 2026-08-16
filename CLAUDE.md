@@ -2,6 +2,15 @@
 
 Full-stack bakery management app: a Spring Boot REST API (`bakery-service`) and a React SPA (`bakery-ui`).
 
+## Local Development
+
+### Test Login
+
+Use these credentials to log in to the app when running/testing locally (e.g. via the Login page or browser automation):
+
+- **Username/email:** `nntan041299@gmail.com`
+- **Password:** `123123123`
+
 ## Repository Layout
 
 ```

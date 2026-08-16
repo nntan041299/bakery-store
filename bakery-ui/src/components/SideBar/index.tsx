@@ -17,6 +17,7 @@ const BASE_NAV_ITEMS: NavItem[] = [
 
 const SHOP_OWNER_NAV_ITEMS: NavItem[] = [
   { path: "/products", label: SIDEBAR_TEXT.INVENTORY, icon: "pi-box" },
+  { path: "/categories", label: SIDEBAR_TEXT.CATEGORIES, icon: "pi-tags" },
 ];
 
 interface SideBarProps {

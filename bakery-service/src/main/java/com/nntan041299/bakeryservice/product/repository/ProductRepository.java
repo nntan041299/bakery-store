@@ -9,4 +9,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     boolean existsBySku(String sku);
 
     boolean existsBySkuAndIdNot(String sku, Long id);
+
+    long countByCategoriesId(Long categoryId);
 }

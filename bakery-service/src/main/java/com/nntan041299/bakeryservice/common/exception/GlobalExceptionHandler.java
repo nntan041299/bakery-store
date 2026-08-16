@@ -1,5 +1,6 @@
 package com.nntan041299.bakeryservice.common.exception;
 
+import com.nntan041299.bakeryservice.category.exception.CategoryNotFoundException;
 import com.nntan041299.bakeryservice.common.dto.ErrorResponse;
 import com.nntan041299.bakeryservice.product.exception.ProductNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryNotFound(CategoryNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 

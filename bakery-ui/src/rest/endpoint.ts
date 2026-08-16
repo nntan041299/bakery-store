@@ -12,3 +12,6 @@ export const ENDPOINT = {
 
 export const productByIdEndpoint = (id: string | number): string =>
   `${ENDPOINT.PRODUCTS}/${id}`;
+
+export const categoryByIdEndpoint = (id: string | number): string =>
+  `${ENDPOINT.CATEGORIES}/${id}`;

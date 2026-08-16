@@ -4,6 +4,7 @@ export const SIDEBAR_TEXT = {
   CLOSE_MENU: "Close menu",
   HOME: "Home",
   INVENTORY: "Inventory",
+  CATEGORIES: "Categories",
   SIGNING_OUT: "Signing out…",
   SIGN_OUT: "Sign out",
 };

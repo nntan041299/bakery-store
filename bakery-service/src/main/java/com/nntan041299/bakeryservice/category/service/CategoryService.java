@@ -5,7 +5,7 @@ import com.nntan041299.bakeryservice.category.entity.Category;
 import com.nntan041299.bakeryservice.category.exception.CategoryNotFoundException;
 import com.nntan041299.bakeryservice.category.repository.CategoryRepository;
 import com.nntan041299.bakeryservice.product.repository.ProductRepository;
-import com.nntan041299.bakeryservice.store.service.StoreService;
+import com.nntan041299.bakeryservice.store.service.CurrentStoreProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,25 +21,24 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final StoreService storeService;
+    private final CurrentStoreProvider currentStoreProvider;
 
-    public List<CategoryResponse> listCategories(Long storeId) {
-        storeService.assertStoreOwnership(storeId);
+    public List<CategoryResponse> listCategories() {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
         return categoryRepository.findByStoreIdOrderByNameAsc(storeId).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Transactional
-    public CategoryResponse createCategory(Long storeId, String name) {
-        storeService.assertStoreOwnership(storeId);
-        Category category = resolveOrCreate(storeId, List.of(name)).iterator().next();
+    public CategoryResponse createCategory(String name) {
+        Category category = resolveOrCreate(List.of(name)).iterator().next();
         return toResponse(category);
     }
 
     @Transactional
-    public CategoryResponse updateCategory(Long storeId, Long id, String name) {
-        storeService.assertStoreOwnership(storeId);
+    public CategoryResponse updateCategory(Long id, String name) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
         Category category = findOwnedCategory(storeId, id);
 
         String trimmed = name.trim();
@@ -54,14 +53,15 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Long storeId, Long id) {
-        storeService.assertStoreOwnership(storeId);
+    public void deleteCategory(Long id) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
         Category category = findOwnedCategory(storeId, id);
         categoryRepository.delete(category);
     }
 
     @Transactional
-    public Set<Category> resolveOrCreate(Long storeId, List<String> names) {
+    public Set<Category> resolveOrCreate(List<String> names) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
         Set<Category> categories = new LinkedHashSet<>();
         if (names == null) {
             return categories;

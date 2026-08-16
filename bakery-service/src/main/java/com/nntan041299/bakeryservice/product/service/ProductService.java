@@ -11,7 +11,7 @@ import com.nntan041299.bakeryservice.product.entity.Product;
 import com.nntan041299.bakeryservice.product.exception.ProductNotFoundException;
 import com.nntan041299.bakeryservice.product.mapper.ProductMapper;
 import com.nntan041299.bakeryservice.product.repository.ProductRepository;
-import com.nntan041299.bakeryservice.store.service.StoreService;
+import com.nntan041299.bakeryservice.store.service.CurrentStoreProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,11 +30,11 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final CategoryService categoryService;
-    private final StoreService storeService;
+    private final CurrentStoreProvider currentStoreProvider;
     private final FileUploadingService fileUploadingService;
 
-    public PageResponse<ProductResponse> listProducts(Long storeId, String search, Boolean active, Long categoryId, Pageable pageable) {
-        storeService.assertStoreOwnership(storeId);
+    public PageResponse<ProductResponse> listProducts(String search, Boolean active, Long categoryId, Pageable pageable) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
 
         Specification<Product> spec = Specification.allOf(Stream.of(
                         ProductSpecifications.storeIs(storeId),
@@ -48,13 +48,13 @@ public class ProductService {
         return PageResponse.from(page.map(productMapper::toResponse));
     }
 
-    public ProductResponse getProduct(Long storeId, Long id) {
-        return productMapper.toResponse(findOwnedProduct(storeId, id));
+    public ProductResponse getProduct(Long id) {
+        return productMapper.toResponse(findOwnedProduct(id));
     }
 
     @Transactional
-    public ProductResponse createProduct(Long storeId, ProductRequest request, MultipartFile image) {
-        storeService.assertStoreOwnership(storeId);
+    public ProductResponse createProduct(ProductRequest request, MultipartFile image) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
 
         if (productRepository.existsBySku(request.getSku())) {
             throw new IllegalArgumentException("SKU already exists: " + request.getSku());
@@ -69,15 +69,15 @@ public class ProductService {
                 .quantity(request.getQuantity())
                 .imageUrl(uploadImageIfPresent(image))
                 .active(request.getActive() == null || request.getActive())
-                .categories(categoryService.resolveOrCreate(storeId, request.getCategories()))
+                .categories(categoryService.resolveOrCreate(request.getCategories()))
                 .build();
 
         return productMapper.toResponse(productRepository.save(product));
     }
 
     @Transactional
-    public ProductResponse updateProduct(Long storeId, Long id, ProductRequest request, MultipartFile image) {
-        Product product = findOwnedProduct(storeId, id);
+    public ProductResponse updateProduct(Long id, ProductRequest request, MultipartFile image) {
+        Product product = findOwnedProduct(id);
 
         if (!product.getSku().equals(request.getSku()) && productRepository.existsBySkuAndIdNot(request.getSku(), id)) {
             throw new IllegalArgumentException("SKU already exists: " + request.getSku());
@@ -94,7 +94,7 @@ public class ProductService {
             product.setImageUrl(null);
         }
         product.setActive(request.getActive() == null || request.getActive());
-        product.setCategories(categoryService.resolveOrCreate(storeId, request.getCategories()));
+        product.setCategories(categoryService.resolveOrCreate(request.getCategories()));
 
         return productMapper.toResponse(productRepository.save(product));
     }
@@ -108,8 +108,8 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalStateException("Failed to upload product image"));
     }
 
-    private Product findOwnedProduct(Long storeId, Long id) {
-        storeService.assertStoreOwnership(storeId);
+    private Product findOwnedProduct(Long id) {
+        Long storeId = currentStoreProvider.getCurrentStore().getId();
         return productRepository.findById(id)
                 .filter(product -> product.getStoreId().equals(storeId))
                 .orElseThrow(() -> new ProductNotFoundException(id));

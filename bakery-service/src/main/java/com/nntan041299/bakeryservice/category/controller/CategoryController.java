@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * {@code storeId} is not bound as a method parameter here — see
+ * {@link com.nntan041299.bakeryservice.store.web.StoreOwnershipInterceptor}.
+ */
 @RestController
 @RequestMapping("/stores/{storeId}/categories")
 @RequiredArgsConstructor
@@ -28,23 +32,23 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> listCategories(@PathVariable Long storeId) {
-        return ResponseEntity.ok(categoryService.listCategories(storeId));
+    public ResponseEntity<List<CategoryResponse>> listCategories() {
+        return ResponseEntity.ok(categoryService.listCategories());
     }
 
     @PostMapping
-    public ResponseEntity<CategoryResponse> createCategory(@PathVariable Long storeId, @Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(storeId, request.getName()));
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request.getName()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long storeId, @PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
-        return ResponseEntity.ok(categoryService.updateCategory(storeId, id, request.getName()));
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+        return ResponseEntity.ok(categoryService.updateCategory(id, request.getName()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long storeId, @PathVariable Long id) {
-        categoryService.deleteCategory(storeId, id);
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
 }

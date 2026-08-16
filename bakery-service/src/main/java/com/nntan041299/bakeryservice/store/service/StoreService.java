@@ -47,25 +47,15 @@ public class StoreService {
     }
 
     /**
-     * Returns the given store, provided it belongs to the current user.
+     * Returns the given store, provided it belongs to the current user. Used
+     * by {@link com.nntan041299.bakeryservice.store.web.StoreOwnershipInterceptor}
+     * to resolve/validate {@code /stores/{storeId}/...} requests exactly once,
+     * upfront, instead of every downstream service re-checking ownership.
      */
     public Store getOwnedStore(Long storeId) {
         Long ownerId = currentUserProvider.getCurrentUser().getId();
         return storeRepository.findByIdAndOwnerId(storeId, ownerId)
                 .orElseThrow(() -> new StoreNotFoundException(storeId));
-    }
-
-    /**
-     * Validates that the given store belongs to the current user, without
-     * loading it. Used by the product/category endpoints nested under
-     * /stores/{storeId}/... to make sure a shop owner can't reach into a
-     * store they don't own.
-     */
-    public void assertStoreOwnership(Long storeId) {
-        Long ownerId = currentUserProvider.getCurrentUser().getId();
-        if (!storeRepository.existsByIdAndOwnerId(storeId, ownerId)) {
-            throw new StoreNotFoundException(storeId);
-        }
     }
 
     /**

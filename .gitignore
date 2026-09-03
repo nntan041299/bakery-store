@@ -40,5 +40,4 @@ build/
 
 
 ### Back end ###
-**/start.sh
 **/*.log

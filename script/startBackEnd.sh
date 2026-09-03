@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+ENV_FILE="$SCRIPT_DIR/.env"
+JAR_DIR="$ROOT_DIR/bakery-service/target"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing env file: $ENV_FILE" >&2
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+JAR_PATH="$(find "$JAR_DIR" -maxdepth 1 -name 'bakery-service-*.jar' ! -name '*.original' | sort -V | tail -n 1)"
+
+if [[ -z "$JAR_PATH" ]]; then
+  echo "No jar found in $JAR_DIR. Run 'mvn package' first." >&2
+  exit 1
+fi
+
+echo "Starting $JAR_PATH"
+exec java -jar "$JAR_PATH"

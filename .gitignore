@@ -41,3 +41,4 @@ build/
 
 ### Back end ###
 **/*.log
+**/*.pid
